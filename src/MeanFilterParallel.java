@@ -4,20 +4,21 @@ import java.io.IOException;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.ForkJoinPool;
 
 public class MeanFilterParallel extends RecursiveAction {
     public String inputImageName, outputImageName;
 
-    protected BufferedImage bufferedImage = null;
-    protected BufferedImage bufferedMeanImage = null;
-    protected File file = null;
+    static BufferedImage bufferedImage = null;
+    static BufferedImage bufferedMeanImage = null;
+    static File file = null;
 
-    protected int windowWidth;
-    protected int width, height;
+    static int windowWidth;
+   static int width, height;
 
-    protected int [][] pixelValues, meanPixelValues;
+    static int [][] pixelValues, meanPixelValues;
 
-    protected int [] alphaRGB, sumAlphaRgb, alphaRgb;
+    static int [] alphaRGB, sumAlphaRgb, alphaRgb;
 
     protected int maxWorkload = 10000;
 
@@ -28,7 +29,7 @@ public class MeanFilterParallel extends RecursiveAction {
         this.meanPixelValues = meanPixelValues;
         this.x0=x0; this.y0=y0;
         this.x1=x1; this.y1=y1;
-        this.windowWidth=windowWidth;
+        MeanFilterParallel.windowWidth =windowWidth;
     }
 
     protected void calculateMeans() {
@@ -40,11 +41,11 @@ public class MeanFilterParallel extends RecursiveAction {
         }
     }
 
-    protected void compute() {
+    void compute() {
         if ( (x1-x0)*(y1-y0) > maxWorkload) {
             //split workload
             int halfX = (x1-x0)/2, halfY = (y1-y0)/2;
-            invokeAll(new MeanFilterParallel(pixelValues, x0,y0 halfX,halfY, meanPixelValues, windowWidth),
+            invokeAll(new MeanFilterParallel(pixelValues, x0,y0, halfX,halfY, meanPixelValues, windowWidth),
                     new MeanFilterParallel(pixelValues, halfX,halfY, x1,y1, meanPixelValues, windowWidth));
         }
         else {
@@ -116,7 +117,7 @@ public class MeanFilterParallel extends RecursiveAction {
     }
 
     protected static boolean outputImage() {
-        bufferedMeanImage = new BufferedImage(width, height, bufferedImage.getType());
+        static bufferedMeanImage = new BufferedImage(width, height, bufferedImage.getType());
         for (int i=0; i<height; i++) {
             for (int j=0; j<width; j++) {
                 bufferedMeanImage.setRGB(j, i, meanPixelValues[i][j]);
@@ -154,7 +155,7 @@ public class MeanFilterParallel extends RecursiveAction {
         pool.invoke(filter);
         long difference = System.currentTimeMillis() - initial;
 
-        System.out.println("Time lapsed is "+difference+" milliseconds");
+        System.out.println("Time lapsed is "+difference+" millisecods");
 
         // outputImage(meanPixelValues, );
 

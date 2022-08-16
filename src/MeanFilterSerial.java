@@ -36,7 +36,7 @@ public class MeanFilterSerial {
             bufferedImage = ImageIO.read(file);
         }catch(IOException e){
             //System.out.println(e);
-            System.out.println("File no found");
+            System.out.println("File not found");
             return null;
         }
         width = bufferedImage.getWidth();
